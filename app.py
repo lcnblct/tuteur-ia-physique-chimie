@@ -89,7 +89,7 @@ def generate_response(messages):
                 "X-Title": app_title,
             },
             json={
-                "model": "mistralai/mistral-small-3.1-24b-instruct:free",
+                "model": "mistralai/mistral-small-3.2-24b-instruct:free",
                 "messages": full_messages,
                 "temperature": 0.7,
                 "max_tokens": 1500,
@@ -170,6 +170,6 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666;'>
     <p>🧪 Tuteur IA Physique-Chimie propulsé par <a href='https://openrouter.ai' target='_blank'>OpenRouter</a> et <a href='https://streamlit.io' target='_blank'>Streamlit</a></p>
-    <p>Modèle: mistralai/mistral-small-3.1-24b-instruct:free | Méthode Socratique</p>
+    <p>Modèle: mistralai/mistral-small-3.2-24b-instruct:free | Méthode Socratique</p>
 </div>
 """, unsafe_allow_html=True) 
