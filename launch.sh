@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script de lancement pour le Tuteur IA Physique-Chimie
+# Script de lancement pour le Assistant Physique-Chimie
 
-echo "🧪 Lancement du Tuteur IA Physique-Chimie"
+echo "🧪 Lancement du Assistant Physique-Chimie"
 echo "=========================================="
 
 # Vérifier si l'environnement virtuel existe

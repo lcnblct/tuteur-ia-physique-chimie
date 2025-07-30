@@ -12,7 +12,7 @@ load_dotenv()
 # Guide de développement : voir DEVELOPMENT_GUIDE.md pour étendre l'application
 
 st.set_page_config(
-    page_title="Tuteur IA Physique-Chimie",
+    page_title="Mon Assistant Physique-Chimie",
     page_icon="🧪",
     layout="centered"
 )
@@ -29,8 +29,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🧪 Tuteur IA Physique-Chimie")
-st.markdown("**Ton assistant pédagogique en physique-chimie**")
+st.title("🧪 Mon Assistant Physique-Chimie")
+st.markdown("**Ton assistant pour apprendre la physique et la chimie**")
 st.markdown("---")
 
 # Fonction pour charger le prompt spécialisé
@@ -58,9 +58,13 @@ def generate_response_with_specialized_prompt(messages, system_prompt):
     base_url = getenv("OPENROUTER_BASE_URL")
     app_url = getenv("APP_URL")
     app_title = getenv("APP_TITLE")
+    model = getenv("OPENROUTER_MODEL", "google/gemini-2.5-flash-lite")
     
-    if not api_key or not base_url:
-        return "❌ Clé API OpenRouter ou URL manquante. Vérifiez le fichier .env"
+    if not api_key:
+        return "❌ **Clé API manquante**\n\nPour utiliser l'assistant, tu dois configurer ta clé API OpenRouter.\n\n1. Va sur https://openrouter.ai/\n2. Crée un compte et obtiens ta clé API\n3. Crée un fichier `.env` avec :\n```\nOPENROUTER_API_KEY=ta_cle_api_ici\n```\n\nDemande à ton professeur de t'aider !"
+    
+    if not base_url:
+        return "❌ **URL de base manquante**\n\nLa configuration n'est pas complète. Contacte ton professeur !"
     
     try:
         # Préparer les messages avec le prompt système spécialisé
@@ -68,22 +72,38 @@ def generate_response_with_specialized_prompt(messages, system_prompt):
             {"role": "system", "content": system_prompt}
         ] + messages
         
+        # Debug: Afficher les détails de la requête (en mode développement)
+        debug_mode = getenv("DEBUG_MODE", "false").lower() == "true"
+        
+        # Debug temporairement désactivé pour la production
+        debug_mode = False
+        
+        if debug_mode:
+            st.write(f"🔍 **Debug** : Modèle utilisé = {model}")
+            st.write(f"🔍 **Debug** : URL = {base_url}/chat/completions")
+        
         response = requests.post(
             f"{base_url}/chat/completions",
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": app_url,
-                "X-Title": app_title,
+                "HTTP-Referer": app_url or "http://localhost:8501",
+                "X-Title": app_title or "Mon Assistant Physique-Chimie",
             },
             json={
-                "model": "mistralai/mistral-small-3.2-24b-instruct:free",
+                "model": model,
                 "messages": full_messages,
                 "temperature": 0.7,
                 "max_tokens": 1500,
             },
             timeout=60
         )
+        
+        if debug_mode:
+            st.write(f"🔍 **Debug** : Status code = {response.status_code}")
+            if response.status_code != 200:
+                st.write(f"🔍 **Debug** : Response = {response.text}")
+        
         response.raise_for_status()
         data = response.json()
         content = data["choices"][0]["message"]["content"]
@@ -98,8 +118,19 @@ def generate_response_with_specialized_prompt(messages, system_prompt):
         content = content.strip()
         
         return content
+    except requests.exceptions.RequestException as e:
+        if "401" in str(e):
+            return "❌ **Clé API invalide**\n\nTa clé API OpenRouter n'est pas valide. Vérifie qu'elle est correcte dans le fichier `.env`."
+        elif "403" in str(e):
+            return "❌ **Accès refusé (403)**\n\nProblème d'autorisation avec OpenRouter. Vérifie :\n\n1. **Ta clé API** est-elle valide ?\n2. **Ton compte OpenRouter** a-t-il des crédits ?\n3. **Le modèle** `google/gemini-2.5-flash-lite` est-il disponible ?\n\nEssaie de vérifier ton compte sur https://openrouter.ai/"
+        elif "429" in str(e):
+            return "❌ **Limite d'utilisation atteinte**\n\nTu as dépassé la limite d'utilisation d'OpenRouter. Essaie plus tard !"
+        elif "timeout" in str(e).lower():
+            return "❌ **Délai d'attente dépassé**\n\nLa réponse prend trop de temps. Essaie de nouveau !"
+        else:
+            return f"❌ **Erreur de connexion**\n\nProblème avec l'API OpenRouter : {str(e)[:100]}...\n\nVérifie ta connexion internet et essaie de nouveau !"
     except Exception as e:
-        return f"❌ Erreur OpenRouter: {str(e)}"
+        return f"❌ **Erreur inattendue**\n\nUn problème s'est produit : {str(e)[:100]}...\n\nEssaie de nouveau ou contacte ton professeur !"
 
 # Dictionnaire des chapitres de 5e par thème
 chapitres_5e = {
@@ -133,7 +164,7 @@ if "niveau" not in st.session_state:
         if st.button(
             n,
             key=f"niveau_{n}",
-            help=f"Niveau {n}" if n == "5e" else "Ce niveau arrive bientôt ! Pour l'instant, choisis 5ème 😊",
+            help=f"Niveau {n}" if n == "5e" else "Bientôt disponible ! Choisis 5ème pour commencer 😊",
             use_container_width=True,
             disabled=(n != "5e")
         ):
@@ -150,7 +181,7 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" not in st.session_state:
             theme,
             key=f"theme_{theme}",
             use_container_width=True,
-            help="Tu peux choisir ce thème !" if theme == "Organisation et transformations de la matière" else "Ce thème arrive bientôt ! Choisis 'Organisation et transformations de la matière' pour commencer 🚀",
+            help="Tu peux choisir ce thème !" if theme == "Organisation et transformations de la matière" else "Bientôt disponible ! Choisis 'Organisation et transformations de la matière' pour commencer 🚀",
             disabled=(theme != "Organisation et transformations de la matière")
         ):
             st.session_state["theme_5e"] = theme
@@ -166,13 +197,13 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "
             chapitre,
             key=f"chapitre_{chapitre}",
             use_container_width=True,
-            help="Tu peux choisir ce chapitre !" if chapitre == "Les trois états de la matière" else "Ce chapitre arrive bientôt ! Choisis 'Les trois états de la matière' pour commencer 💪",
+            help="Tu peux choisir ce chapitre !" if chapitre == "Les trois états de la matière" else "Bientôt disponible ! Choisis 'Les trois états de la matière' pour commencer 💪",
             disabled=(chapitre != "Les trois états de la matière")
         ):
             st.session_state["chapitre_5e"] = chapitre
             st.rerun()
 elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "chapitre_5e" in st.session_state:
-    st.success(f"Niveau : 5e | Thème : {st.session_state['theme_5e']} | Chapitre : {st.session_state['chapitre_5e']}")
+    st.success(f"✅ Niveau : 5e | Thème : {st.session_state['theme_5e']} | Chapitre : {st.session_state['chapitre_5e']}")
     
     # Charger le prompt spécialisé selon le chapitre
     chapitre = st.session_state["chapitre_5e"]
@@ -183,19 +214,19 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "
         st.session_state.messages = []
         
         # Message d'accueil automatique
-        welcome_message = f"""🎯 **Bienvenue dans ton espace d'apprentissage !**
+        welcome_message = f"""🎯 **Salut ! Je suis ravi de t'aider !**
 
-✅ **Tu es ici :**
+✅ **On va travailler sur :**
 - **Niveau :** 5ème
 - **Thème :** {st.session_state['theme_5e']}
 - **Chapitre :** {st.session_state['chapitre_5e']}
 
-🧪 **Je suis ton tuteur IA spécialisé** pour ce chapitre. Je vais t'accompagner avec la méthode socratique : je te poserai des questions pour te faire réfléchir et construire ta compréhension étape par étape.
+🧪 **Je suis ton assistant pour apprendre** ce chapitre. Je vais te poser des questions pour t'aider à réfléchir et comprendre par toi-même.
 
 💡 **Comment ça marche :**
 - Pose tes questions sur le chapitre
 - Je te guiderai avec des questions pour t'aider à réfléchir
-- Tu construiras toi-même tes connaissances
+- Tu vas construire tes connaissances toi-même
 
 **Prêt(e) à commencer ? Pose ta première question !** 🚀"""
         
@@ -217,7 +248,7 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "
         
         # Afficher le message tuteur avec un spinner
         with st.chat_message("assistant"):
-            with st.spinner("🤔 Je réfléchis à ta question..."):
+            with st.spinner("🤔 Je réfléchis..."):
                 # Préparer les messages pour l'API
                 messages_for_api = [
                     {"role": msg["role"], "content": msg["content"]} 
@@ -234,7 +265,7 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "
                 st.session_state.messages.append({"role": "assistant", "content": response})
     
     # Bouton pour effacer l'historique
-    if st.button("🗑️ Effacer l'historique", type="secondary"):
+    if st.button("🗑️ Recommencer", type="secondary"):
         st.session_state.messages = []
         st.rerun()
 else:
@@ -243,6 +274,6 @@ else:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666;'>
-    <p>🧪 Tuteur IA Physique-Chimie propulsé par <a href='https://openrouter.ai' target='_blank'>OpenRouter</a> et <a href='https://streamlit.io' target='_blank'>Streamlit</a></p>
+    <p>🧪 Mon Assistant Physique-Chimie</p>
 </div>
 """, unsafe_allow_html=True)

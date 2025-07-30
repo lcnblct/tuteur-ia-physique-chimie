@@ -1,4 +1,4 @@
-# 🚀 TODO - Améliorations futures du Tuteur IA Physique-Chimie
+# 🚀 TODO - Améliorations futures du Assistant Physique-Chimie
 
 ## 🔐 **Authentification et Sécurité - PRIORITÉ IMMÉDIATE**
 

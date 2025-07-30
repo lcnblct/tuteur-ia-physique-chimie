@@ -1,3 +1,18 @@
-# Clé API Groq
+# Configuration OpenRouter (utilisé par l'application)
+# Obtenez votre clé API sur https://openrouter.ai/
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+APP_URL=http://localhost:8501
+APP_TITLE=Mon Assistant Physique-Chimie
+
+# Modèle à utiliser (payant - nécessite des crédits OpenRouter)
+# Options disponibles :
+# - google/gemini-2.5-flash-lite (recommandé - rapide et efficace)
+# - anthropic/claude-3.5-sonnet
+# - openai/gpt-4o-mini
+# - mistralai/mistral-large-3.2-24b-instruct
+OPENROUTER_MODEL=google/gemini-2.5-flash-lite
+
+# Configuration Groq (alternative)
 # Obtenez votre clé API sur https://console.groq.com/
-GROQ_API_KEY=your_groq_api_key_here 
+# GROQ_API_KEY=your_groq_api_key_here 

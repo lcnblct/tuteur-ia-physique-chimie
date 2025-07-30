@@ -1,106 +1,102 @@
-# 🧪 Tuteur IA Physique-Chimie
+# 🧪 Mon Assistant Physique-Chimie
 
-**Votre assistant pédagogique spécialisé en physique-chimie (Cycles 3 & 4)**
+Un assistant IA spécialisé pour aider les élèves à apprendre la physique et la chimie en utilisant la méthode socratique.
 
-## 🎯 Rôle du Tuteur IA
+## 🚀 Installation et Configuration
 
-- **Tuteur IA spécialisé** en physique-chimie (cycles 3 & 4)
-- **Méthode socratique** : pose des questions pour faire réfléchir
-- **Pas de réponses directes** : aide à construire la compréhension
-- **Adaptation au niveau** : contenu adapté selon la classe
-- **Focus exclusif** : uniquement sur la physique-chimie
+### 1. Prérequis
+- Python 3.8 ou plus récent
+- Une clé API OpenRouter (gratuite)
 
-## 📚 Programmes couverts
-
-**Cycle 3 (6e)** : États de la matière, mouvements, énergie, signaux  
-**Cycle 4 (5e, 4e, 3e)** : Transformations de la matière, interactions, conversions d'énergie, signaux
-
-## 🚀 Déploiement
-
-### Option 1 : Streamlit Cloud (Recommandé - Gratuit)
-
-1. **Créez un compte** sur [share.streamlit.io](https://share.streamlit.io)
-2. **Connectez votre GitHub** et sélectionnez ce repository
-3. **Configurez les variables d'environnement** :
-   - `GROQ_API_KEY` = votre clé API Groq
-4. **Déployez** ! L'app sera accessible via une URL publique
-
-### Option 2 : Heroku
-
-1. **Installez Heroku CLI**
-2. **Déployez** :
-   ```bash
-   heroku create votre-app-name
-   heroku config:set GROQ_API_KEY=votre_cle_api
-   git push heroku main
-   ```
-
-## 🔧 Installation locale
-
+### 2. Installation
 ```bash
-# Cloner le repository
-git clone <votre-repo>
+# Cloner le projet
+git clone <url-du-repo>
 cd chatbot
-
-# Créer l'environnement virtuel
-python3 -m venv venv
-source venv/bin/activate  # Sur Windows : venv\Scripts\activate
 
 # Installer les dépendances
 pip install -r requirements.txt
+```
 
-# Créer le fichier .env avec votre clé API
-echo "GROQ_API_KEY=votre_cle_api_groq" > .env
+### 3. Configuration
+1. **Obtenir une clé API OpenRouter** :
+   - Va sur [https://openrouter.ai/](https://openrouter.ai/)
+   - Crée un compte gratuit
+   - Va dans "API Keys"
+   - Crée une nouvelle clé API
 
-# Lancer l'application
+2. **Configurer les variables d'environnement** :
+   ```bash
+   # Copier le fichier d'exemple
+   cp env_example.txt .env
+   
+   # Éditer le fichier .env et remplacer par ta vraie clé API
+   nano .env
+   ```
+
+3. **Vérifier la configuration** :
+   ```bash
+   python setup.py
+   ```
+
+### 4. Lancer l'application
+```bash
 streamlit run app.py
 ```
 
-## 📁 Structure du projet
+## 🎯 Fonctionnalités
+
+- **Interface intuitive** : Navigation par niveau et thème
+- **Prompts spécialisés** : Adaptés à chaque chapitre
+- **Méthode socratique** : L'IA pose des questions pour guider l'apprentissage
+- **Historique des conversations** : Suivi des échanges
+- **Gestion d'erreurs améliorée** : Messages d'erreur clairs et utiles
+
+## 📚 Chapitres disponibles
+
+### 5ème (Cycle 4)
+- **Organisation et transformations de la matière**
+  - Les trois états de la matière ✅
+  - Les changements d'état (bientôt)
+  - Mesures de masse et de volume (bientôt)
+  - Mélanges de liquides et de solides (bientôt)
+  - Identification d'une espèce chimique (bientôt)
+
+*Autres thèmes et niveaux en développement*
+
+## 🔧 Développement
+
+Voir `DEVELOPMENT_GUIDE.md` pour étendre l'application.
+
+## 🐛 Dépannage
+
+### Erreur "Clé API manquante"
+- Vérifie que le fichier `.env` existe
+- Vérifie que `OPENROUTER_API_KEY` est défini
+- Vérifie que la clé API est valide
+
+### Erreur "Limite d'utilisation atteinte"
+- OpenRouter a une limite gratuite
+- Attends quelques minutes ou upgrade ton compte
+
+### Erreur "Délai d'attente dépassé"
+- Problème de connexion internet
+- Essaie de nouveau
+
+## 📝 Structure du projet
 
 ```
 chatbot/
-├── app.py                 # Application principale Streamlit
-├── system_prompt.md       # Prompt système complet
-├── requirements.txt       # Dépendances Python
-├── .env                   # Variables d'environnement (clé API)
-├── test_groq.py          # Script de test de l'API
-├── config.py             # Configuration centralisée
-├── launch.sh             # Script de lancement
-├── Procfile              # Configuration Heroku
-└── README.md             # Documentation
+├── app.py                 # Application principale
+├── setup.py              # Script de configuration
+├── config.py             # Configuration
+├── requirements.txt      # Dépendances
+├── env_example.txt      # Exemple de variables d'environnement
+├── system_prompt.md     # Prompt système général
+├── system_prompts/      # Prompts spécialisés par chapitre
+└── README.md           # Ce fichier
 ```
 
-## 🔑 Configuration de l'API Groq
+## 🤝 Contribution
 
-1. **Obtenez votre clé API** sur [console.groq.com](https://console.groq.com)
-2. **Créez le fichier `.env`** :
-   ```
-   GROQ_API_KEY=gsk_votre_cle_api_ici
-   ```
-
-## 🧪 Test de l'application
-
-```bash
-# Tester la connexion API
-python test_groq.py
-
-# Lancer l'application
-streamlit run app.py
-```
-
-## 📊 Modèle utilisé
-
-- **Modèle** : `meta-llama/llama-4-scout-17b-16e-instruct`
-- **Limite** : 30 000 TPM (Tokens Per Minute)
-- **Méthode** : Socratique (questions guidantes)
-
-## 🎨 Personnalisation
-
-- **Thème** : Modifiable dans `.streamlit/config.toml`
-- **Prompt système** : Éditable dans `system_prompt.md`
-- **Configuration** : Centralisée dans `config.py`
-
----
-
-**Propulsé par** [Groq](https://groq.com) et [Streamlit](https://streamlit.io) 🚀 
+Les contributions sont les bienvenues ! Voir `DEVELOPMENT_GUIDE.md` pour les détails. 

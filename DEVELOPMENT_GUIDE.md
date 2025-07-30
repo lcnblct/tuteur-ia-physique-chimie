@@ -1,4 +1,4 @@
-# Guide de Développement - Tuteur IA Physique-Chimie
+# Guide de Développement - Assistant Physique-Chimie
 
 ## Comment étendre l'application avec de nouveaux niveaux, thèmes et chapitres
 

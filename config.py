@@ -1,5 +1,5 @@
 """
-Configuration pour le Tuteur IA Physique-Chimie
+Configuration pour le Assistant Physique-Chimie
 """
 
 # Configuration du modèle
@@ -8,7 +8,7 @@ DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MAX_TOKENS = 1500
 
 # Configuration de l'interface
-PAGE_TITLE = "Tuteur IA Physique-Chimie"
+PAGE_TITLE = "Mon Assistant Physique-Chimie"
 PAGE_ICON = "🧪"
 
 # Classes disponibles
@@ -59,7 +59,7 @@ CLASSES = {
 WELCOME_MESSAGE = """
 👋 **Bienvenue !** 
 
-Je suis ton tuteur IA spécialisé en physique-chimie. Je vais t'aider à comprendre les concepts en te posant des questions plutôt qu'en te donnant directement les réponses.
+Je suis ton assistant spécialisé en physique-chimie. Je vais t'aider à comprendre les concepts en te posant des questions plutôt qu'en te donnant directement les réponses.
 
 **Comment ça marche :**
 - Je vais te poser des questions pour te faire réfléchir
