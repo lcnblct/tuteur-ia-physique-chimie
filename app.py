@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import re
 # from groq import Groq
 from dotenv import load_dotenv
 import requests
@@ -14,6 +15,13 @@ st.set_page_config(
     page_icon="🧪",
     layout="centered"
 )
+
+# Activer le support des mathématiques LaTeX
+st.markdown("""
+<style>
+.katex { font-size: 1.1em; }
+</style>
+""", unsafe_allow_html=True)
 
 # Titre de l'application
 st.title("🧪 Tuteur IA Physique-Chimie")
