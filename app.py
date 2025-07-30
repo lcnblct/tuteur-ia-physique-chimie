@@ -134,7 +134,7 @@ if "niveau" not in st.session_state:
                 del st.session_state["theme_5e"]
             if "chapitre_5e" in st.session_state:
                 del st.session_state["chapitre_5e"]
-            st.experimental_rerun()
+            st.rerun()
 elif st.session_state["niveau"] == "5e" and "theme_5e" not in st.session_state:
     st.markdown("### Choisis un thème :")
     for theme in themes_5e:
@@ -142,7 +142,7 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" not in st.session_state:
             st.session_state["theme_5e"] = theme
             if "chapitre_5e" in st.session_state:
                 del st.session_state["chapitre_5e"]
-            st.experimental_rerun()
+            st.rerun()
 elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "chapitre_5e" not in st.session_state:
     theme_choisi = st.session_state["theme_5e"]
     st.markdown(f"### Thème : {theme_choisi}")
@@ -150,7 +150,7 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "
     for chapitre in chapitres_5e[theme_choisi]:
         if st.button(chapitre, key=f"chapitre_{chapitre}", use_container_width=True):
             st.session_state["chapitre_5e"] = chapitre
-            st.experimental_rerun()
+            st.rerun()
 elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "chapitre_5e" in st.session_state:
     st.success(f"Niveau : 5e | Thème : {st.session_state['theme_5e']} | Chapitre : {st.session_state['chapitre_5e']}")
     
