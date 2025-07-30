@@ -9,6 +9,8 @@ from os import getenv
 # Charger les variables d'environnement
 load_dotenv()
 
+# Guide de développement : voir DEVELOPMENT_GUIDE.md pour étendre l'application
+
 st.set_page_config(
     page_title="Tuteur IA Physique-Chimie",
     page_icon="🧪",
@@ -39,6 +41,7 @@ def load_specialized_prompt(chapitre):
             prompt_path = "system_prompts/5e/organisation_et_transformations/trois_etats_matiere.md"
             with open(prompt_path, "r", encoding="utf-8") as f:
                 return f.read()
+        # Pour ajouter un nouveau prompt spécialisé, voir DEVELOPMENT_GUIDE.md
         else:
             # Pour les autres chapitres, utiliser le prompt général
             with open("system_prompt.md", "r", encoding="utf-8") as f:
@@ -127,9 +130,14 @@ themes_5e = list(chapitres_5e.keys())
 if "niveau" not in st.session_state:
     st.markdown("### Choisis ton niveau :")
     for n in ["6e", "5e", "4e", "3e"]:
-        if st.button(n, key=f"niveau_{n}", help=f"Niveau {n}", use_container_width=True):
+        if st.button(
+            n,
+            key=f"niveau_{n}",
+            help=f"Niveau {n}" if n == "5e" else "Ce niveau arrive bientôt ! Pour l'instant, choisis 5ème 😊",
+            use_container_width=True,
+            disabled=(n != "5e")
+        ):
             st.session_state["niveau"] = n
-            # Reset étapes suivantes
             if "theme_5e" in st.session_state:
                 del st.session_state["theme_5e"]
             if "chapitre_5e" in st.session_state:
@@ -138,7 +146,13 @@ if "niveau" not in st.session_state:
 elif st.session_state["niveau"] == "5e" and "theme_5e" not in st.session_state:
     st.markdown("### Choisis un thème :")
     for theme in themes_5e:
-        if st.button(theme, key=f"theme_{theme}", use_container_width=True):
+        if st.button(
+            theme,
+            key=f"theme_{theme}",
+            use_container_width=True,
+            help="Tu peux choisir ce thème !" if theme == "Organisation et transformations de la matière" else "Ce thème arrive bientôt ! Choisis 'Organisation et transformations de la matière' pour commencer 🚀",
+            disabled=(theme != "Organisation et transformations de la matière")
+        ):
             st.session_state["theme_5e"] = theme
             if "chapitre_5e" in st.session_state:
                 del st.session_state["chapitre_5e"]
@@ -148,7 +162,13 @@ elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "
     st.markdown(f"### Thème : {theme_choisi}")
     st.markdown("#### Choisis un chapitre :")
     for chapitre in chapitres_5e[theme_choisi]:
-        if st.button(chapitre, key=f"chapitre_{chapitre}", use_container_width=True):
+        if st.button(
+            chapitre,
+            key=f"chapitre_{chapitre}",
+            use_container_width=True,
+            help="Tu peux choisir ce chapitre !" if chapitre == "Les trois états de la matière" else "Ce chapitre arrive bientôt ! Choisis 'Les trois états de la matière' pour commencer 💪",
+            disabled=(chapitre != "Les trois états de la matière")
+        ):
             st.session_state["chapitre_5e"] = chapitre
             st.rerun()
 elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "chapitre_5e" in st.session_state:
