@@ -1,7 +1,9 @@
 import streamlit as st
 import os
-from groq import Groq
+# from groq import Groq
 from dotenv import load_dotenv
+import requests
+from os import getenv
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -19,23 +21,19 @@ st.markdown("**Votre assistant pédagogique spécialisé en physique-chimie (Cyc
 st.markdown("---")
 
 # Initialisation du client Groq
-@st.cache_resource
-def init_groq_client():
-    """Initialise le client Groq avec la clé API"""
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        st.error("❌ Clé API Groq manquante. Veuillez définir la variable d'environnement GROQ_API_KEY")
-        return None
-    
-    try:
-        client = Groq(api_key=api_key)
-        return client
-    except Exception as e:
-        st.error(f"❌ Erreur lors de l'initialisation du client Groq: {str(e)}")
-        return None
-
-# Initialiser le client
-client = init_groq_client()
+# def init_groq_client():
+#     """Initialise le client Groq avec la clé API"""
+#     api_key = os.getenv("GROQ_API_KEY")
+#     if not api_key:
+#         st.error("❌ Clé API Groq manquante. Veuillez définir la variable d'environnement GROQ_API_KEY")
+#         return None
+#     try:
+#         client = Groq(api_key=api_key)
+#         return client
+#     except Exception as e:
+#         st.error(f"❌ Erreur lors de l'initialisation du client Groq: {str(e)}")
+#         return None
+# client = init_groq_client()
 
 # Configuration du modèle - Changement pour un modèle avec beaucoup plus de tokens
 MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct"  # Limite de 30000 TPM
@@ -64,9 +62,14 @@ def load_system_prompt():
 
 # Fonction pour générer une réponse avec le prompt système
 def generate_response(messages):
-    """Génère une réponse avec le modèle Groq en utilisant le prompt système"""
-    if not client:
-        return "❌ Client Groq non initialisé. Vérifiez votre clé API."
+    """Génère une réponse avec OpenRouter via l'API REST"""
+    api_key = getenv("OPENROUTER_API_KEY")
+    base_url = getenv("OPENROUTER_BASE_URL")
+    app_url = getenv("APP_URL")
+    app_title = getenv("APP_TITLE")
+    
+    if not api_key or not base_url:
+        return "❌ Clé API OpenRouter ou URL manquante. Vérifiez le fichier .env"
     
     try:
         # Charger le prompt système complet
@@ -77,16 +80,39 @@ def generate_response(messages):
             {"role": "system", "content": system_prompt}
         ] + messages
         
-        response = client.chat.completions.create(
-            messages=full_messages,
-            model=MODEL_NAME,
-            temperature=0.7,
-            max_tokens=1500,  # Augmenté car le modèle a plus de capacité
-            stream=False
+        response = requests.post(
+            f"{base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": app_url,
+                "X-Title": app_title,
+            },
+            json={
+                "model": "mistralai/mistral-small-3.1-24b-instruct:free",
+                "messages": full_messages,
+                "temperature": 0.7,
+                "max_tokens": 1500,
+            },
+            timeout=60
         )
-        return response.choices[0].message.content
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        
+        # Nettoyer les balises de réflexion
+        import re
+        content = re.sub(r'◁think▷.*?◁/think▷', '', content, flags=re.DOTALL)
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+        content = re.sub(r'<thinking>.*?</thinking>', '', content, flags=re.DOTALL)
+        
+        # Nettoyer les espaces multiples
+        content = re.sub(r'\n\s*\n', '\n\n', content)
+        content = content.strip()
+        
+        return content
     except Exception as e:
-        return f"❌ Erreur lors de la génération de la réponse: {str(e)}"
+        return f"❌ Erreur OpenRouter: {str(e)}"
 
 # Affichage principal
 st.markdown("""
@@ -143,7 +169,7 @@ if st.button("🗑️ Effacer l'historique", type="secondary"):
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666;'>
-    <p>🧪 Tuteur IA Physique-Chimie propulsé par <a href='https://groq.com' target='_blank'>Groq</a> et <a href='https://streamlit.io' target='_blank'>Streamlit</a></p>
-    <p>Modèle: meta-llama/llama-4-scout-17b-16e-instruct | Méthode Socratique</p>
+    <p>🧪 Tuteur IA Physique-Chimie propulsé par <a href='https://openrouter.ai' target='_blank'>OpenRouter</a> et <a href='https://streamlit.io' target='_blank'>Streamlit</a></p>
+    <p>Modèle: mistralai/mistral-small-3.1-24b-instruct:free | Méthode Socratique</p>
 </div>
 """, unsafe_allow_html=True) 

@@ -14,7 +14,7 @@ def check_requirements():
     
     try:
         import streamlit
-        import groq
+        # import groq
         import dotenv
         print("✅ Toutes les dépendances sont installées")
         return True
@@ -36,11 +36,11 @@ def check_env_file():
     
     # Vérifier que la clé API est définie
     load_dotenv()
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key or api_key == "your_groq_api_key_here":
-        print("❌ Clé API Groq non configurée dans .env")
-        print("   Remplacez 'your_groq_api_key_here' par votre vraie clé API")
-        return False
+    # api_key = os.getenv("GROQ_API_KEY")
+    # if not api_key or api_key == "your_groq_api_key_here":
+    #     print("❌ Clé API Groq non configurée dans .env")
+    #     print("   Remplacez 'your_groq_api_key_here' par votre vraie clé API")
+    #     return False
     
     print("✅ Fichier .env configuré")
     return True

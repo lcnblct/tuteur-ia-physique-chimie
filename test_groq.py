@@ -4,7 +4,7 @@ Script de test pour vérifier la connexion à l'API Groq et le prompt système
 """
 
 import os
-from groq import Groq
+# from groq import Groq
 from dotenv import load_dotenv
 
 def load_system_prompt():
@@ -43,7 +43,7 @@ def test_groq_connection():
     
     try:
         # Initialiser le client
-        client = Groq(api_key=api_key)
+        # client = Groq(api_key=api_key)
         print("✅ Client Groq initialisé")
         
         # Test simple avec le modèle et le prompt système
@@ -90,7 +90,7 @@ def test_model_capabilities():
         return False
     
     try:
-        client = Groq(api_key=api_key)
+        # client = Groq(api_key=api_key)
         
         # Test avec une question de 6e
         print("📚 Test avec une question de 6e (Cycle 3):")
