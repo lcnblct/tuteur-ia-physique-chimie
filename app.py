@@ -9,68 +9,48 @@ from os import getenv
 # Charger les variables d'environnement
 load_dotenv()
 
-# Configuration de la page
 st.set_page_config(
     page_title="Tuteur IA Physique-Chimie",
     page_icon="🧪",
     layout="centered"
 )
 
-# Activer le support des mathématiques LaTeX
 st.markdown("""
-<style>
-.katex { font-size: 1.1em; }
-</style>
+    <style>
+    .big-button button {
+        width: 100%;
+        height: 3em;
+        font-size: 1.3em;
+        margin-bottom: 1em;
+        border-radius: 1em;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# Titre de l'application
 st.title("🧪 Tuteur IA Physique-Chimie")
-st.markdown("**Votre assistant pédagogique spécialisé en physique-chimie (Cycles 3 & 4)**")
+st.markdown("**Ton assistant pédagogique en physique-chimie**")
 st.markdown("---")
 
-# Initialisation du client Groq
-# def init_groq_client():
-#     """Initialise le client Groq avec la clé API"""
-#     api_key = os.getenv("GROQ_API_KEY")
-#     if not api_key:
-#         st.error("❌ Clé API Groq manquante. Veuillez définir la variable d'environnement GROQ_API_KEY")
-#         return None
-#     try:
-#         client = Groq(api_key=api_key)
-#         return client
-#     except Exception as e:
-#         st.error(f"❌ Erreur lors de l'initialisation du client Groq: {str(e)}")
-#         return None
-# client = init_groq_client()
-
-# Configuration du modèle - Changement pour un modèle avec beaucoup plus de tokens
-MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct"  # Limite de 30000 TPM
-
-# Initialisation de l'historique des conversations
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Fonction pour charger le prompt système complet
-def load_system_prompt():
-    """Charge le prompt système complet depuis le fichier"""
+# Fonction pour charger le prompt spécialisé
+def load_specialized_prompt(chapitre):
+    """Charge le prompt spécialisé selon le chapitre sélectionné"""
     try:
-        with open("system_prompt.md", "r", encoding="utf-8") as f:
-            return f.read()  # Utiliser le prompt complet avec ce modèle
+        if chapitre == "Les trois états de la matière":
+            prompt_path = "system_prompts/5e/organisation_et_transformations/trois_etats_matiere.md"
+            with open(prompt_path, "r", encoding="utf-8") as f:
+                return f.read()
+        else:
+            # Pour les autres chapitres, utiliser le prompt général
+            with open("system_prompt.md", "r", encoding="utf-8") as f:
+                return f.read()
     except FileNotFoundError:
         return """Vous êtes un tuteur IA expert en physique-chimie pour les cycles 3 et 4 du système éducatif français. 
         Votre mission est de guider l'élève étape par étape pour qu'il construise lui-même sa compréhension. 
-        Utilisez la méthode socratique : posez des questions pour guider la réflexion plutôt que de donner les réponses.
-        
-        Règles importantes :
-        - Posez des questions pour faire réfléchir l'élève
-        - Ne donnez jamais les réponses directement
-        - Adaptez le niveau selon la classe mentionnée
-        - Restez uniquement sur la physique-chimie
-        - Utilisez un ton bienveillant et encourageant"""
+        Utilisez la méthode socratique : posez des questions pour guider la réflexion plutôt que de donner les réponses."""
 
-# Fonction pour générer une réponse avec le prompt système
-def generate_response(messages):
-    """Génère une réponse avec OpenRouter via l'API REST"""
+# Fonction pour générer une réponse avec le prompt spécialisé
+def generate_response_with_specialized_prompt(messages, system_prompt):
+    """Génère une réponse avec OpenRouter via l'API REST avec un prompt spécialisé"""
     api_key = getenv("OPENROUTER_API_KEY")
     base_url = getenv("OPENROUTER_BASE_URL")
     app_url = getenv("APP_URL")
@@ -80,10 +60,7 @@ def generate_response(messages):
         return "❌ Clé API OpenRouter ou URL manquante. Vérifiez le fichier .env"
     
     try:
-        # Charger le prompt système complet
-        system_prompt = load_system_prompt()
-        
-        # Préparer les messages avec le prompt système
+        # Préparer les messages avec le prompt système spécialisé
         full_messages = [
             {"role": "system", "content": system_prompt}
         ] + messages
@@ -109,7 +86,6 @@ def generate_response(messages):
         content = data["choices"][0]["message"]["content"]
         
         # Nettoyer les balises de réflexion
-        import re
         content = re.sub(r'◁think▷.*?◁/think▷', '', content, flags=re.DOTALL)
         content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
         content = re.sub(r'<thinking>.*?</thinking>', '', content, flags=re.DOTALL)
@@ -122,62 +98,131 @@ def generate_response(messages):
     except Exception as e:
         return f"❌ Erreur OpenRouter: {str(e)}"
 
-# Affichage principal
-st.markdown("""
-### 🎯 Mon rôle
-- **Tuteur IA spécialisé** en physique-chimie (cycles 3 & 4)
-- **Méthode socratique** : je te pose des questions pour te faire réfléchir
-- **Pas de réponses directes** : je t'aide à construire ta compréhension
-- **Adaptation au niveau** : contenu adapté selon ta classe
-- **Focus exclusif** : uniquement sur la physique-chimie
+# Dictionnaire des chapitres de 5e par thème
+chapitres_5e = {
+    "Organisation et transformations de la matière": [
+        "Les trois états de la matière",
+        "Les changements d'état",
+        "Mesures de masse et de volume",
+        "Mélanges de liquides et de solides",
+        "Identification d'une espèce chimique"
+    ],
+    "Mouvement et interactions": [
+        "Mouvement d'un objet"
+    ],
+    "L'énergie, ses transferts et ses conversions": [
+        "Les différentes formes d'énergie"
+    ],
+    "Des signaux pour observer et communiquer": [
+        "Matériaux conducteurs et isolants. Sécurité électrique",
+        "Circuits électriques en série et en dérivation",
+        "Signaux sonores",
+        "Signaux lumineux"
+    ]
+}
 
-### 📚 Programmes couverts
-**Cycle 3 (6e)** : États de la matière, mouvements, énergie, signaux  
-**Cycle 4 (5e, 4e, 3e)** : Transformations de la matière, interactions, conversions d'énergie, signaux
-""")
+themes_5e = list(chapitres_5e.keys())
 
-# Affichage de l'historique des messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# Zone de saisie pour l'élève
-if prompt := st.chat_input("Pose ta question ou décris ton problème..."):
-    # Ajouter le message élève à l'historique
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# Wizard étape par étape
+if "niveau" not in st.session_state:
+    st.markdown("### Choisis ton niveau :")
+    for n in ["6e", "5e", "4e", "3e"]:
+        if st.button(n, key=f"niveau_{n}", help=f"Niveau {n}", use_container_width=True):
+            st.session_state["niveau"] = n
+            # Reset étapes suivantes
+            if "theme_5e" in st.session_state:
+                del st.session_state["theme_5e"]
+            if "chapitre_5e" in st.session_state:
+                del st.session_state["chapitre_5e"]
+            st.experimental_rerun()
+elif st.session_state["niveau"] == "5e" and "theme_5e" not in st.session_state:
+    st.markdown("### Choisis un thème :")
+    for theme in themes_5e:
+        if st.button(theme, key=f"theme_{theme}", use_container_width=True):
+            st.session_state["theme_5e"] = theme
+            if "chapitre_5e" in st.session_state:
+                del st.session_state["chapitre_5e"]
+            st.experimental_rerun()
+elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "chapitre_5e" not in st.session_state:
+    theme_choisi = st.session_state["theme_5e"]
+    st.markdown(f"### Thème : {theme_choisi}")
+    st.markdown("#### Choisis un chapitre :")
+    for chapitre in chapitres_5e[theme_choisi]:
+        if st.button(chapitre, key=f"chapitre_{chapitre}", use_container_width=True):
+            st.session_state["chapitre_5e"] = chapitre
+            st.experimental_rerun()
+elif st.session_state["niveau"] == "5e" and "theme_5e" in st.session_state and "chapitre_5e" in st.session_state:
+    st.success(f"Niveau : 5e | Thème : {st.session_state['theme_5e']} | Chapitre : {st.session_state['chapitre_5e']}")
     
-    # Afficher le message élève
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # Charger le prompt spécialisé selon le chapitre
+    chapitre = st.session_state["chapitre_5e"]
+    system_prompt = load_specialized_prompt(chapitre)
     
-    # Afficher le message tuteur avec un spinner
-    with st.chat_message("assistant"):
-        with st.spinner("🤔 Je réfléchis à ta question..."):
-            # Préparer les messages pour l'API
-            messages_for_api = [
-                {"role": msg["role"], "content": msg["content"]} 
-                for msg in st.session_state.messages
-            ]
-            
-            # Générer la réponse
-            response = generate_response(messages_for_api)
-            
-            # Afficher la réponse
-            st.markdown(response)
-            
-            # Ajouter la réponse à l'historique
-            st.session_state.messages.append({"role": "assistant", "content": response})
+    # Initialiser l'historique des messages
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+        
+        # Message d'accueil automatique
+        welcome_message = f"""🎯 **Bienvenue dans ton espace d'apprentissage !**
 
-# Bouton pour effacer l'historique
-if st.button("🗑️ Effacer l'historique", type="secondary"):
-    st.session_state.messages = []
-    st.rerun()
+✅ **Tu es ici :**
+- **Niveau :** 5ème
+- **Thème :** {st.session_state['theme_5e']}
+- **Chapitre :** {st.session_state['chapitre_5e']}
 
-# Footer
+🧪 **Je suis ton tuteur IA spécialisé** pour ce chapitre. Je vais t'accompagner avec la méthode socratique : je te poserai des questions pour te faire réfléchir et construire ta compréhension étape par étape.
+
+💡 **Comment ça marche :**
+- Pose tes questions sur le chapitre
+- Je te guiderai avec des questions pour t'aider à réfléchir
+- Tu construiras toi-même tes connaissances
+
+**Prêt(e) à commencer ? Pose ta première question !** 🚀"""
+        
+        st.session_state.messages.append({"role": "assistant", "content": welcome_message})
+    
+    # Afficher l'historique
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    
+    # Zone de saisie
+    if prompt := st.chat_input("Pose ta question sur ce chapitre..."):
+        # Ajouter le message élève
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        
+        # Afficher le message élève
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        # Afficher le message tuteur avec un spinner
+        with st.chat_message("assistant"):
+            with st.spinner("🤔 Je réfléchis à ta question..."):
+                # Préparer les messages pour l'API
+                messages_for_api = [
+                    {"role": msg["role"], "content": msg["content"]} 
+                    for msg in st.session_state.messages
+                ]
+                
+                # Générer la réponse avec le prompt spécialisé
+                response = generate_response_with_specialized_prompt(messages_for_api, system_prompt)
+                
+                # Afficher la réponse
+                st.markdown(response)
+                
+                # Ajouter la réponse à l'historique
+                st.session_state.messages.append({"role": "assistant", "content": response})
+    
+    # Bouton pour effacer l'historique
+    if st.button("🗑️ Effacer l'historique", type="secondary"):
+        st.session_state.messages = []
+        st.rerun()
+else:
+    st.info(f"Tu as choisi le niveau : {st.session_state['niveau']}. Les thèmes spécifiques seront bientôt disponibles pour ce niveau.")
+
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666;'>
     <p>🧪 Tuteur IA Physique-Chimie propulsé par <a href='https://openrouter.ai' target='_blank'>OpenRouter</a> et <a href='https://streamlit.io' target='_blank'>Streamlit</a></p>
-    <p>Modèle: mistralai/mistral-small-3.2-24b-instruct:free | Méthode Socratique</p>
 </div>
-""", unsafe_allow_html=True) 
+""", unsafe_allow_html=True)

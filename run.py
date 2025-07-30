@@ -72,7 +72,7 @@ def launch_app():
     print("-" * 50)
     
     try:
-        subprocess.run([sys.executable, "-m", "streamlit", "run", "app.py"])
+        subprocess.run([sys.executable, "-m", "streamlit", "run", "app_v2.py"])
     except KeyboardInterrupt:
         print("\n👋 Application arrêtée")
     except Exception as e:
